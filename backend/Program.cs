@@ -8,4 +8,4 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.Run();// .NET 9 Web API entry point
+app.Run();
