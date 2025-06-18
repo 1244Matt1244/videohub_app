@@ -1,0 +1,8 @@
+
+- Postavljanje baze (Docker + SQL Server)
+- Implementacija JWT autentikacije (.NET 9)
+- Google OAuth autentikacija
+- CRUD operacije za videe (MUX)
+- Stripe integracija (test)
+- Dark Mode toggle
+- UI za dashboard i korisničke postavke

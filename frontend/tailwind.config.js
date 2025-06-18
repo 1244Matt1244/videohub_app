@@ -1,0 +1,1 @@
+// Tailwind konfiguracija s dark mode

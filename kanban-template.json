@@ -1,0 +1,10 @@
+
+{
+  "name": "VideoHub Kanban",
+  "columns": [
+    { "name": "Backlog" },
+    { "name": "In Progress" },
+    { "name": "Review" },
+    { "name": "Done" }
+  ]
+}
