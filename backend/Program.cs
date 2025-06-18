@@ -1,1 +1,11 @@
-// .NET 9 Web API entry point
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddAuthentication(...).AddJwtBearer(...).AddGoogle(...);
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<MuxService>();
+builder.Services.AddScoped<StripeService>();
+builder.Services.AddControllers();
+var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();
