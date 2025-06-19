@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using backend.Services;
 
 namespace backend.Controllers
 {
@@ -7,11 +8,26 @@ namespace backend.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
+        private readonly JwtService _jwtService;
+
+        public AuthController(JwtService jwtService)
+        {
+            _jwtService = jwtService;
+        }
+
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest req)
         {
-            // TODO: generate JWT
-            return Ok("JWT generated (stub)");
+            // Ovdje bi inače provjeravao korisnika iz baze
+
+            // Simulacija autentikacije
+            if (req.Email == "test@test.com" && req.Password == "password")
+            {
+                var token = _jwtService.GenerateToken("123", req.Email);
+                return Ok(new { token });
+            }
+
+            return Unauthorized("Neispravan email ili lozinka.");
         }
 
         [HttpPost("google")]
