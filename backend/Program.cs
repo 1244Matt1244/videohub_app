@@ -8,24 +8,23 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ➕ Add Controllers
+// Add services to the container.
 builder.Services.AddControllers();
-
-// ➕ Add Swagger with JWT auth support
 builder.Services.AddEndpointsApiExplorer();
+
+// Swagger configuration
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "VideoHub API", Version = "v1" });
 
-    // ✅ Add JWT support in Swagger
+    // Swagger JWT Auth support
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Unesi 'Bearer <token>' za autorizaciju"
+        Description = "Unesi 'Bearer {token}'",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -35,36 +34,38 @@ builder.Services.AddSwaggerGen(options =>
             {
                 Reference = new OpenApiReference
                 {
-                    Id = "Bearer",
-                    Type = ReferenceType.SecurityScheme
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
             },
-            Array.Empty<string>()
+            new string[] { }
         }
     });
 });
 
-// 🔐 Add JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+// JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = "videohub",
-            ValidAudience = "videohub_users",
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("tajna_kljucna_recenica")) // zamijeni pravim ključem
-        };
-    });
-
-builder.Services.AddAuthorization();
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = "videohub",
+        ValidAudience = "videohub_users",
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("tajna_kljucna_recenica"))
+    };
+});
 
 var app = builder.Build();
 
-// ✅ Configure middleware
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -73,7 +74,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// ➕ Middleware redoslijed je bitan!
+// Must come before MapControllers
 app.UseAuthentication();
 app.UseAuthorization();
 
