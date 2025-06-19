@@ -8,20 +8,19 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger configuration
+// Swagger + JWT Auth
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "VideoHub API", Version = "v1" });
 
-    // Swagger JWT Auth support
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
-        Description = "Unesi 'Bearer {token}'",
+        Description = "Unesi 'Bearer {token}' u polje",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
@@ -38,12 +37,12 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            Array.Empty<string>()
         }
     });
 });
 
-// JWT Authentication
+// JWT auth konfiguracija
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,13 +58,15 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = "videohub",
         ValidAudience = "videohub_users",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("tajna_kljucna_recenica"))
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes("tajna_kljucna_recenica"))
     };
 });
 
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -74,8 +75,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Must come before MapControllers
-app.UseAuthentication();
+app.UseAuthentication(); // mora biti prije UseAuthorization
 app.UseAuthorization();
 
 app.MapControllers();
