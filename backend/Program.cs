@@ -17,6 +17,7 @@ if (string.IsNullOrEmpty(jwtSecret))
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<JwtService>();
 
 // Swagger + JWT Auth
 builder.Services.AddSwaggerGen(options =>
