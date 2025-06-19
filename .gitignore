@@ -1,0 +1,26 @@
+# .NET / C#
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+
+# Nuxt / Node
+frontend/node_modules/
+frontend/.output/
+frontend/.nuxt/
+frontend/.env
+
+# Env files
+.env
+.env.local
+.env.development
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
