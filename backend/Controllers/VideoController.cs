@@ -36,7 +36,7 @@ namespace backend.Controllers
     // 👇 Dummy DTO - zamijeni sa stvarnim propertiima koje ti trebaju
     public class VideoUploadRequest
     {
-        public string Title { get; set; }
-        public string Url { get; set; }
+        public required string Title { get; set; }
+        public required string Url { get; set; }
     }
 }
