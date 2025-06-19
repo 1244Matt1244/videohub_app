@@ -1,11 +1,10 @@
 version: '3.8'
-
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
-      SA_PASSWORD: "YourStrong@Passw0rd"
       ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
     ports:
       - "1433:1433"
     volumes:
@@ -16,10 +15,10 @@ services:
     ports:
       - "5000:80"
     environment:
-      ConnectionStrings__Default: "Server=db;Database=VideoHub;User=sa;Password=YourStrong@Passw0rd;"
-      Mux__TokenId: "your_mux_token_id"
-      Mux__TokenSecret: "your_mux_token_secret"
-      Stripe__SecretKey: "your_stripe_secret_key"
+      - ConnectionStrings__Default=Server=${DB_SERVER};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};
+      - Mux__TokenId=${MUX_TOKEN_ID}
+      - Mux__TokenSecret=${MUX_TOKEN_SECRET}
+      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
     depends_on:
       - db
 
@@ -28,7 +27,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NUXT_PUBLIC_API_BASE: "http://localhost:5000"
+      - NUXT_PUBLIC_API_BASE=http://localhost:5000
 
 volumes:
-  sql_data: {}
+  sql_data:
