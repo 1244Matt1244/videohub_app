@@ -9,30 +9,41 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Učitavanje tajne rečenice iz konfiguracije
-var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrEmpty(jwtSecret))
-    throw new Exception("JWT tajna rečenica nije definirana u konfiguraciji.");
+// 🔐 Učitavanje JWT konfiguracije
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-// Add services to the container
+if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
+    throw new Exception("JWT konfiguracija nije pravilno definirana u appsettings.json (Key, Issuer, Audience).");
+
+// 🌐 Servisi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// 🧠 Custom servisi
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<MuxService>();
 builder.Services.AddScoped<StripeService>();
 
-// Swagger + JWT Auth
+// 📖 Swagger konfiguracija s JWT podrškom
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "VideoHub API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "VideoHub API",
+        Version = "v1",
+        Description = "API za upravljanje video sadržajem (MUX, Stripe, JWT)"
+    });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        In = ParameterLocation.Header,
-        Description = "Unesi 'Bearer {token}' u polje",
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Upiši 'Bearer {token}' bez navodnika."
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -51,7 +62,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// JWT auth konfiguracija
+// 🔐 JWT autentikacija
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -65,9 +76,10 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "videohub",
-        ValidAudience = "videohub_users",
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        ClockSkew = TimeSpan.Zero,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -75,15 +87,21 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+// 🌍 Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VideoHub API V1");
+    });
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication(); // mora biti prije UseAuthorization
+
+app.UseAuthentication(); // mora prije Authorization
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.Run();
