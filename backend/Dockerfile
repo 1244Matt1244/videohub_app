@@ -1,30 +1,26 @@
 # ---------- Build stage ----------
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
-# Set radni direktorij
 WORKDIR /src
 
-# Kopiraj samo csproj i nuget.config za efikasniji cache
+# Kopiraj samo csproj i nuget.config da iskoristimo cache kad nije bilo promjena
 COPY ["VideoHubApp.Backend.csproj", "./"]
 COPY ["nuget.config", "./"]
 
-# Restore uz nuget.config (za Mux.Video)
+# Ako koristiš docker secrets za autentikaciju nugeta, ovdje trebaš ubaciti RUN s --mount=type=secret (vidi napomenu dolje)
 RUN dotnet restore VideoHubApp.Backend.csproj --configfile nuget.config
 
-# Kopiraj ostatak projekta
+# Kopiraj ostatak koda
 COPY . .
 
-# Build aplikaciju (publish u Release režimu)
+# Build i publish aplikaciju u Release mode, bez restore jer smo ga već napravili
 RUN dotnet publish VideoHubApp.Backend.csproj -c Release -o /app --no-restore
 
 # ---------- Runtime stage ----------
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
-# Postavi radni direktorij
 WORKDIR /app
 
-# Kopiraj iz build stage-a
 COPY --from=build /app .
 
-# Startaj aplikaciju
 ENTRYPOINT ["dotnet", "VideoHubApp.Backend.dll"]
