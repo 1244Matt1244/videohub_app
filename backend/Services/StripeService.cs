@@ -1,20 +1,19 @@
-using Microsoft.Extensions.Configuration;
 using Stripe;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace backend.Services
 {
     public class StripeService
     {
-        private readonly IConfiguration _config;
+        private readonly PaymentIntentService _paymentIntentService;
 
-        public StripeService(IConfiguration config)
+        public StripeService()
         {
-            _config = config;
-            StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
+            StripeConfiguration.ApiKey = "YOUR_STRIPE_SECRET_KEY";
+            _paymentIntentService = new PaymentIntentService();
         }
 
-        public PaymentIntent CreatePaymentIntent(long amount, string currency)
+        public async Task<PaymentIntent> CreatePaymentIntent(long amount, string currency)
         {
             var options = new PaymentIntentCreateOptions
             {
@@ -23,8 +22,8 @@ namespace backend.Services
                 PaymentMethodTypes = new List<string> { "card" }
             };
 
-            var service = new PaymentIntentService();
-            return service.Create(options);
+            var paymentIntent = await _paymentIntentService.CreateAsync(options);
+            return paymentIntent;
         }
     }
 }
