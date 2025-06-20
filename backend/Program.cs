@@ -1,3 +1,4 @@
+using backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -5,11 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔐 Učitavanje JWT konfiguracije
+// JWT konfiguracija
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -17,23 +19,15 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
     throw new Exception("JWT konfiguracija nije pravilno definirana u appsettings.json (Key, Issuer, Audience).");
 
-// 🌐 Servisi
+// Servisi
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// 🧠 Custom servisi
-builder.Services.AddScoped<JwtService>();             // Pretpostavka: nema HttpClient dependency
-builder.Services.AddScoped<StripeService>();           // Ako treba HttpClient, promijeni u AddHttpClient
-builder.Services.AddHttpClient<MuxService>();          // Važno: registracija HttpClient za MuxService
-
-// 📖 Swagger konfiguracija s JWT podrškom
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "VideoHub API",
-        Version = "v1",
-        Description = "API za upravljanje video sadržajem (MUX, Stripe, JWT)"
+        Version = "v1"
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -62,7 +56,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// 🔐 JWT autentikacija
+// JWT
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -85,21 +79,22 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
+// Custom servisi
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<StripeService>();
+builder.Services.AddHttpClient<MuxService>();
+
 var app = builder.Build();
 
-// 🌍 Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VideoHub API V1");
-    });
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // mora prije Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
