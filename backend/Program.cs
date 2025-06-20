@@ -22,9 +22,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // 🧠 Custom servisi
-builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<MuxService>();
-builder.Services.AddScoped<StripeService>();
+builder.Services.AddScoped<JwtService>();             // Pretpostavka: nema HttpClient dependency
+builder.Services.AddScoped<StripeService>();           // Ako treba HttpClient, promijeni u AddHttpClient
+builder.Services.AddHttpClient<MuxService>();          // Važno: registracija HttpClient za MuxService
 
 // 📖 Swagger konfiguracija s JWT podrškom
 builder.Services.AddSwaggerGen(options =>
