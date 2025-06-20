@@ -11,42 +11,51 @@ namespace backend.Services
     public class MuxService
     {
         private readonly HttpClient _httpClient;
+        private readonly IConfiguration _config;
 
-        public MuxService(IConfiguration config, HttpClient httpClient)
+        public MuxService(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
+            _config = config;
 
-            var tokenId = config["Mux:TokenId"];
-            var tokenSecret = config["Mux:TokenSecret"];
+            var muxTokenId = _config["Mux:TokenId"];
+            var muxTokenSecret = _config["Mux:TokenSecret"];
 
-            if (string.IsNullOrEmpty(tokenId) || string.IsNullOrEmpty(tokenSecret))
-            {
-                throw new ArgumentNullException("Mux credentials not found in configuration");
-            }
-
-            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{tokenId}:{tokenSecret}"));
-            _httpClient.BaseAddress = new Uri("https://api.mux.com");
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+            var byteArray = Encoding.ASCII.GetBytes($"{muxTokenId}:{muxTokenSecret}");
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
         }
 
-        public async Task<string> UploadVideoAsync(string playbackPolicy = "public")
+        public async Task<MuxAssetDto> UploadVideoAsync()
         {
-            var requestContent = new
+            var payload = new
             {
-                input = new[] { "https://stream.mux.com/demo-video.mp4" },
-                playback_policy = new[] { playbackPolicy }
+                input = "https://storage.googleapis.com/muxdemofiles/mux-video-intro.mp4",
+                playback_policy = new[] { "public" }
             };
 
-            var jsonContent = new StringContent(
-                JsonSerializer.Serialize(requestContent),
-                Encoding.UTF8,
-                "application/json");
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("/video/v1/assets", jsonContent);
+            var response = await _httpClient.PostAsync("https://api.mux.com/video/v1/assets", content);
             response.EnsureSuccessStatusCode();
 
-            var responseJson = await response.Content.ReadAsStringAsync();
-            return responseJson; // ili deserializiraj u neki model
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var parsed = JsonSerializer.Deserialize<MuxAssetResponse>(responseBody);
+
+            return parsed?.data ?? throw new Exception("MUX API nije vratio asset.");
         }
+    }
+
+    public class MuxAssetResponse
+    {
+        public MuxAssetDto data { get; set; }
+    }
+
+    public class MuxAssetDto
+    {
+        public string Id { get; set; }
+        public object[] PlaybackIds { get; set; }
+        public string Status { get; set; }
     }
 }
