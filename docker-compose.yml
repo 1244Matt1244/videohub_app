@@ -3,7 +3,6 @@ version: '3.8'
 services:
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: videohub-sql-server
     environment:
       SA_PASSWORD: "${SA_PASSWORD}"
       ACCEPT_EULA: "Y"
@@ -14,15 +13,9 @@ services:
       - sql-data:/var/opt/mssql
     networks:
       - videohub-network
-    restart: unless-stopped
 
   backend:
-    build:
-      context: ./backend
-      args:
-        NUGET_USERNAME: ${NUGET_USERNAME}
-        NUGET_PASSWORD: ${NUGET_PASSWORD}
-    container_name: videohub-backend
+    image: videohub-backend
     ports:
       - "5000:80"
     depends_on:
@@ -44,11 +37,9 @@ services:
       - nuget_token
     networks:
       - videohub-network
-    restart: unless-stopped
 
   frontend:
-    build: ./frontend
-    container_name: videohub-frontend
+    image: videohub-frontend
     ports:
       - "3000:3000"
     depends_on:
@@ -58,7 +49,6 @@ services:
       NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
     networks:
       - videohub-network
-    restart: unless-stopped
 
 secrets:
   nuget_username:
