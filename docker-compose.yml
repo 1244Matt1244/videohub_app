@@ -5,7 +5,7 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: videohub-sql-server
     environment:
-      SA_PASSWORD: "YourStrong@Passw0rd"
+      SA_PASSWORD: "${SA_PASSWORD}"
       ACCEPT_EULA: "Y"
       MSSQL_PID: "Express"
     ports:
@@ -14,6 +14,7 @@ services:
       - sql-data:/var/opt/mssql
     networks:
       - videohub-network
+    restart: unless-stopped
 
   backend:
     build: ./backend
@@ -23,19 +24,20 @@ services:
     depends_on:
       - sql-server
     environment:
-      ConnectionStrings__DefaultConnection: "Server=sql-server;Database=VideoHub;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True;"
+      ConnectionStrings__DefaultConnection: "Server=sql-server;Database=VideoHub;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
       ASPNETCORE_ENVIRONMENT: "Development"
-      Jwt__Key: "your_secure_key_32_chars_long"
-      Jwt__Issuer: "https://localhost:5000"
-      Jwt__Audience: "https://localhost:3000"
-      Mux__TokenId: "YOUR_MUX_TOKEN_ID"
-      Mux__TokenSecret: "YOUR_MUX_TOKEN_SECRET"
-      Stripe__SecretKey: "sk_test_..."
-      Stripe__WebhookSecret: "whsec_..."
-      Google__ClientId: "YOUR_GOOGLE_CLIENT_ID"
-      Google__ClientSecret: "YOUR_GOOGLE_CLIENT_SECRET"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "http://backend:80"
+      Jwt__Audience: "http://frontend:3000"
+      Mux__TokenId: "${MUX_TOKEN_ID}"
+      Mux__TokenSecret: "${MUX_TOKEN_SECRET}"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
+      Google__ClientId: "${GOOGLE_CLIENT_ID}"
+      Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
     networks:
       - videohub-network
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -45,10 +47,11 @@ services:
     depends_on:
       - backend
     environment:
-      NUXT_PUBLIC_API_BASE_URL: "http://localhost:5000"
-      NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "pk_test_..."
+      NUXT_PUBLIC_API_BASE_URL: "http://backend:80"
+      NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
     networks:
       - videohub-network
+    restart: unless-stopped
 
 networks:
   videohub-network:
