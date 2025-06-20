@@ -16,7 +16,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.x'  # prilagodi verziji .NET-a
+          dotnet-version: '8.x'  # prilagodi verziji .NET-a
 
       - name: Restore dependencies
         run: dotnet restore ./backend
