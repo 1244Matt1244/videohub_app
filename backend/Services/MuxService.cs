@@ -49,13 +49,13 @@ namespace backend.Services
 
     public class MuxAssetResponse
     {
-        public MuxAssetDto data { get; set; }
+        public required MuxAssetDto data { get; set; }
     }
 
     public class MuxAssetDto
     {
-        public string Id { get; set; }
-        public object[] PlaybackIds { get; set; }
-        public string Status { get; set; }
+        public required string Id { get; set; }
+        public required object[] PlaybackIds { get; set; }
+        public required string Status { get; set; }
     }
 }
