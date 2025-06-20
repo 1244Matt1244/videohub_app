@@ -1,0 +1,96 @@
+name: Build and Deploy VideoHub
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build_backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.x'  # prilagodi verziji .NET-a
+
+      - name: Restore dependencies
+        run: dotnet restore ./backend
+
+      - name: Build backend
+        run: dotnet build --no-restore ./backend
+
+      - name: Run tests
+        run: dotnet test --no-build ./backend
+
+      - name: Publish backend
+        run: dotnet publish -c Release -o ./publish ./backend
+
+      - name: Upload backend artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend
+          path: ./publish
+
+  build_frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # prilagodi verziji Node.js
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: ./frontend
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend
+          path: ./frontend/.output
+
+  deploy:
+    needs: [build_backend, build_frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download backend artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: backend
+          path: ./deploy/backend
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: ./deploy/frontend
+
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
+          
+          # Backend deploy (primjer kopiranja i restartanja servisa)
+          scp -r ./deploy/backend/* $DEPLOY_USER@$DEPLOY_SERVER:/var/www/videohub/backend/
+          ssh $DEPLOY_USER@$DEPLOY_SERVER "sudo systemctl restart videohub-backend.service"
+
+          # Frontend deploy (primjer kopiranja statičkih datoteka)
+          scp -r ./deploy/frontend/* $DEPLOY_USER@$DEPLOY_SERVER:/var/www/videohub/frontend/
