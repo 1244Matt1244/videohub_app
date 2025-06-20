@@ -4,7 +4,7 @@
 
 ## Opis projekta
 
-VideoHub API je backend aplikacija razvijena u .NET 7, koja omogućava upravljanje video sadržajem uz integriranu autentifikaciju, naplatu putem Stripe-a, upload videa putem Mux platforme i pregled video sadržaja. API je dokumentiran koristeći OpenAPI 3.0 (Swagger) te podržava JWT autentifikaciju za sigurnu komunikaciju.
+VideoHub API je backend aplikacija razvijena u .NET 8, koja omogućava upravljanje video sadržajem uz integriranu autentifikaciju, naplatu putem Stripe-a, upload videa putem Mux platforme i pregled video sadržaja. API je dokumentiran koristeći OpenAPI 3.0 (Swagger) te podržava JWT autentifikaciju za sigurnu komunikaciju.
 
 ---
 
