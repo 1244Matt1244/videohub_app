@@ -1,10 +1,33 @@
-
 {
   "name": "VideoHub Kanban",
   "columns": [
-    { "name": "Backlog" },
-    { "name": "In Progress" },
-    { "name": "Review" },
-    { "name": "Done" }
+    {
+      "name": "Backlog",
+      "issues": [
+        "Dodavanje klasične autentikacije + JWT (backend)",
+        "Google OAuth integracija",
+        "Postavljanje baze i Dapper ORM (.NET)",
+        "Implementacija CQRS arhitekture",
+        "Integracija MUX servisa (upload, stream)",
+        "Stripe test plaćanje za premium videe",
+        "UI za dashboard s filtrima",
+        "Dark mode toggle + korisničke postavke",
+        "README + deploy + CI (opcionalno)"
+      ]
+    },
+    {
+      "name": "In Progress",
+      "issues": []
+    },
+    {
+      "name": "Review",
+      "issues": []
+    },
+    {
+      "name": "Done",
+      "issues": [
+        "Postavljanje Nuxt 3 + Tailwind"
+      ]
+    }
   ]
 }
