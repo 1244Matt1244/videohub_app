@@ -3,21 +3,25 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 
-# Copy csproj and nuget.config to use cache
+# Build args za NuGet autentikaciju
+ARG NUGET_USERNAME
+ARG NUGET_PASSWORD
+
+# Kopiraj csproj i nuget.config za cache
 COPY ["VideoHubApp.Backend.csproj", "./"]
 COPY ["nuget.config", "./"]
 
-# Mount secrets za nuget autentikaciju i izvrši restore
-RUN --mount=type=secret,id=nuget_username \
-    --mount=type=secret,id=nuget_password \
-    NUGET_USERNAME=$(cat /run/secrets/nuget_username) && \
-    NUGET_PASSWORD=$(cat /run/secrets/nuget_password) && \
-    sed -i "s|__NUGET_USERNAME__|$NUGET_USERNAME|g" nuget.config && \
-    sed -i "s|__NUGET_PASSWORD__|$NUGET_PASSWORD|g" nuget.config && \
-    dotnet restore VideoHubApp.Backend.csproj --configfile nuget.config
+# Zamijeni placeholder-e u nuget.config sa stvarnim vrijednostima argumenata
+RUN sed -i "s|__NUGET_USERNAME__|$NUGET_USERNAME|g" nuget.config && \
+    sed -i "s|__NUGET_PASSWORD__|$NUGET_PASSWORD|g" nuget.config
 
+# Restore koristeći ažurirani nuget.config
+RUN dotnet restore VideoHubApp.Backend.csproj --configfile nuget.config
+
+# Kopiraj ostatak koda
 COPY . .
 
+# Build i publish aplikaciju
 RUN dotnet publish VideoHubApp.Backend.csproj -c Release -o /app --no-restore
 
 # ---------- Runtime stage ----------
