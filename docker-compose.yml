@@ -68,7 +68,7 @@ secrets:
 
 networks:
   videohub-network:
-    driver: bridge
+    driver: overlay
 
 volumes:
   sql-data:
