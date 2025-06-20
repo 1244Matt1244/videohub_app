@@ -1,17 +1,21 @@
-using Microsoft.Extensions.Configuration;
-using Mux.Api;
-using Mux.Model;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace backend.Services
 {
     public class MuxService
     {
-        private readonly AssetsApi _assetsApi;
+        private readonly HttpClient _httpClient;
 
-        public MuxService(IConfiguration config)
+        public MuxService(IConfiguration config, HttpClient httpClient)
         {
+            _httpClient = httpClient;
+
             var tokenId = config["Mux:TokenId"];
             var tokenSecret = config["Mux:TokenSecret"];
 
@@ -20,24 +24,29 @@ namespace backend.Services
                 throw new ArgumentNullException("Mux credentials not found in configuration");
             }
 
-            Configuration muxConfig = new Configuration
-            {
-                Username = tokenId,
-                Password = tokenSecret
-            };
-
-            _assetsApi = new AssetsApi(muxConfig);
+            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{tokenId}:{tokenSecret}"));
+            _httpClient.BaseAddress = new Uri("https://api.mux.com");
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
         }
 
-        public async Task<Asset> UploadVideoAsync(string playbackPolicy = "public")
+        public async Task<string> UploadVideoAsync(string playbackPolicy = "public")
         {
-            var input = new CreateAssetRequest(
-                new System.Collections.Generic.List<string> { "https://stream.mux.com/demo-video.mp4" }, // Demo input URL
-                new System.Collections.Generic.List<string> { playbackPolicy }
-            );
+            var requestContent = new
+            {
+                input = new[] { "https://stream.mux.com/demo-video.mp4" },
+                playback_policy = new[] { playbackPolicy }
+            };
 
-            var assetResponse = await _assetsApi.CreateAssetAsync(input);
-            return assetResponse.Data;
+            var jsonContent = new StringContent(
+                JsonSerializer.Serialize(requestContent),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PostAsync("/video/v1/assets", jsonContent);
+            response.EnsureSuccessStatusCode();
+
+            var responseJson = await response.Content.ReadAsStringAsync();
+            return responseJson; // ili deserializiraj u neki model
         }
     }
 }
