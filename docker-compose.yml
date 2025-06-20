@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -17,9 +19,9 @@ services:
   backend:
     build:
       context: ./backend
-      secrets:
-        - nuget_username
-        - nuget_password
+      args:
+        NUGET_USERNAME: ${NUGET_USERNAME}
+        NUGET_PASSWORD: ${NUGET_PASSWORD}
     container_name: videohub-backend
     ports:
       - "5000:80"
@@ -40,9 +42,6 @@ services:
     networks:
       - videohub-network
     restart: unless-stopped
-    secrets:
-      - nuget_username
-      - nuget_password
 
   frontend:
     build: ./frontend
@@ -64,9 +63,3 @@ networks:
 
 volumes:
   sql-data:
-
-secrets:
-  nuget_username:
-    external: true
-  nuget_password:
-    external: true
