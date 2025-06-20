@@ -9,10 +9,12 @@
 
 <script setup lang="ts">
 import VideoCard from '~/components/VideoCard.vue'
+import { useAuthStore } from '~/stores/auth'
 
+const auth = useAuthStore()
+
+// Učitavanje videa preko API-ja, prosljeđujemo auth header ako postoji
 const { data: videos } = await useFetch('/api/videos', {
-  headers: useAuthStore().token
-    ? { Authorization: `Bearer ${useAuthStore().token}` }
-    : {}
+  headers: auth.token ? { Authorization: `Bearer ${auth.token}` } : {}
 })
 </script>
