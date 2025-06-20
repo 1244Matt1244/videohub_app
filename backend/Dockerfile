@@ -3,17 +3,21 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 
-# Kopiraj samo csproj i nuget.config da iskoristimo cache kad nije bilo promjena
+# Copy csproj and nuget.config to use cache
 COPY ["VideoHubApp.Backend.csproj", "./"]
 COPY ["nuget.config", "./"]
 
-# Ako koristiš docker secrets za autentikaciju nugeta, ovdje trebaš ubaciti RUN s --mount=type=secret (vidi napomenu dolje)
-RUN dotnet restore VideoHubApp.Backend.csproj --configfile nuget.config
+# Mount secrets za nuget autentikaciju i izvrši restore
+RUN --mount=type=secret,id=nuget_username \
+    --mount=type=secret,id=nuget_password \
+    NUGET_USERNAME=$(cat /run/secrets/nuget_username) && \
+    NUGET_PASSWORD=$(cat /run/secrets/nuget_password) && \
+    sed -i "s|__NUGET_USERNAME__|$NUGET_USERNAME|g" nuget.config && \
+    sed -i "s|__NUGET_PASSWORD__|$NUGET_PASSWORD|g" nuget.config && \
+    dotnet restore VideoHubApp.Backend.csproj --configfile nuget.config
 
-# Kopiraj ostatak koda
 COPY . .
 
-# Build i publish aplikaciju u Release mode, bez restore jer smo ga već napravili
 RUN dotnet publish VideoHubApp.Backend.csproj -c Release -o /app --no-restore
 
 # ---------- Runtime stage ----------
