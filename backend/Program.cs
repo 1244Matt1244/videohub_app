@@ -11,7 +11,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Učitavanje konfiguracije za JWT
+// Učitavanje konfiguracije za JWT iz appsettings.json
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -19,11 +19,11 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
     throw new Exception("JWT konfiguracija nije pravilno definirana u appsettings.json (Key, Issuer, Audience).");
 
-// Dodavanje servisa
+// Registracija servisa
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger
+// Swagger dokumentacija
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -32,6 +32,7 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
+    // JWT u Swagger sučelju
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -58,7 +59,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// JWT autentifikacija
+// JWT autentikacija
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -79,6 +80,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Autorizacija
 builder.Services.AddAuthorization();
 
 // Custom servisi
@@ -86,19 +88,23 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<StripeService>();
 builder.Services.AddHttpClient<MuxService>();
 
+// Build aplikacije
 var app = builder.Build();
 
+// Middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); // HTTPS redirect (ako koristiš https profil iz launchSettings)
-
+app.UseHttpsRedirection(); // Automatski redirect s HTTP na HTTPS (ako koristiš https profil)
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Root redirect na Swagger UI
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
