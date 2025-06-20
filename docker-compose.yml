@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -37,6 +39,9 @@ services:
       Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
       Google__ClientId: "${GOOGLE_CLIENT_ID}"
       Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
+    secrets:
+      - nuget_username
+      - nuget_token
     networks:
       - videohub-network
     restart: unless-stopped
@@ -54,6 +59,12 @@ services:
     networks:
       - videohub-network
     restart: unless-stopped
+
+secrets:
+  nuget_username:
+    external: true
+  nuget_token:
+    external: true
 
 networks:
   videohub-network:
