@@ -11,7 +11,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// JWT konfiguracija
+// Učitavanje konfiguracije za JWT
 var jwtKey = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -19,9 +19,11 @@ var jwtAudience = builder.Configuration["Jwt:Audience"];
 if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) || string.IsNullOrWhiteSpace(jwtAudience))
     throw new Exception("JWT konfiguracija nije pravilno definirana u appsettings.json (Key, Issuer, Audience).");
 
-// Servisi
+// Dodavanje servisa
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Swagger
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -56,7 +58,7 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// JWT
+// JWT autentifikacija
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -92,7 +94,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseHttpsRedirection(); // HTTPS redirect (ako koristiš https profil iz launchSettings)
 
 app.UseAuthentication();
 app.UseAuthorization();
