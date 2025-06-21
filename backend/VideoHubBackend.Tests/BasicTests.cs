@@ -1,7 +1,7 @@
 using Xunit;
+using backend.Controllers;
 using Microsoft.AspNetCore.Mvc;
-using VideoHubApp.backend.Controllers;
-using VideoHubApp.backend.Models;
+using backend.Models;
 
 namespace VideoHubBackend.Tests
 {
@@ -14,24 +14,26 @@ namespace VideoHubBackend.Tests
         }
 
         [Fact]
-        public void HomeController_ReturnsOk()
+        public void VideoUpload_ReturnsOk()
         {
-            // Arrange
-            var controller = new HomeController();
+            var controller = new VideoController();
+            var request = new VideoUploadRequest
+            {
+                Title = "Test Video",
+                Url = "http://example.com/video.mp4",
+                Description = "Opis videa"
+            };
 
-            // Act
-            var result = controller.Index();
-
-            // Assert
-            Assert.IsType<OkResult>(result);
+            var result = controller.Upload(request);
+            Assert.IsType<OkObjectResult>(result);
         }
 
         [Fact]
-        public void UserModel_DefaultValues()
+        public void VideoList_ReturnsOk()
         {
-            var user = new User();
-            Assert.Null(user.Email);
-            Assert.Null(user.Password);
+            var controller = new VideoController();
+            var result = controller.List();
+            Assert.IsType<OkObjectResult>(result);
         }
     }
 }
