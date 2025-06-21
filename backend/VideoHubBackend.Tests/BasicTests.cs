@@ -1,10 +1,13 @@
 using Xunit;
 
-public class BasicTests
+namespace VideoHubBackend.Tests
 {
-    [Fact]
-    public void SampleTest()
+    public class BasicTests
     {
-        Assert.True(true);
+        [Fact]
+        public void True_Is_True()
+        {
+            Assert.True(true);
+        }
     }
 }
