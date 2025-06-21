@@ -17,8 +17,4 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\VideoHubApp.Backend.csproj" />
-  </ItemGroup>
-
 </Project>
