@@ -4,6 +4,21 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using videohub_app.backend.Interfaces; 
+
+[ApiController]
+[Route("api/[controller]")]
+public class VideoController : ControllerBase
+{
+    private readonly IMuxService _muxService;
+    private readonly IVideoService _videoService;
+
+    public VideoController(IMuxService muxService, IVideoService videoService)
+    {
+        _muxService = muxService;
+        _videoService = videoService;
+    }
+}
 
 namespace backend.Controllers
 {
