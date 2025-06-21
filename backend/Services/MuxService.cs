@@ -1,61 +1,87 @@
-using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
+using Mux.Video;
+using Mux.Video.Api;
+using Mux.Video.Models;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace backend.Services
 {
     public class MuxService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _config;
+        private readonly string _jwtKey;
+        private readonly string _jwtIssuer;
+        private readonly string _jwtAudience;
+        private readonly int _jwtExpireMinutes;
 
-        public MuxService(HttpClient httpClient, IConfiguration config)
+        private readonly AssetsApi _assetsApi;
+
+        public MuxService(IConfiguration config)
         {
-            _httpClient = httpClient;
-            _config = config;
+            // JWT config
+            _jwtKey = config["Jwt:Key"] ?? throw new ArgumentNullException("JWT Key missing in config");
+            _jwtIssuer = config["Jwt:Issuer"] ?? throw new ArgumentNullException("JWT Issuer missing in config");
+            _jwtAudience = config["Jwt:Audience"] ?? throw new ArgumentNullException("JWT Audience missing in config");
+            _jwtExpireMinutes = int.TryParse(config["Jwt:ExpireMinutes"], out int exp) ? exp : 60;
 
-            var muxTokenId = _config["Mux:TokenId"];
-            var muxTokenSecret = _config["Mux:TokenSecret"];
+            // Mux config
+            var muxTokenId = config["Mux:TokenId"];
+            var muxTokenSecret = config["Mux:TokenSecret"];
+            if (string.IsNullOrEmpty(muxTokenId) || string.IsNullOrEmpty(muxTokenSecret))
+                throw new ArgumentException("Mux API keys are missing");
 
-            var byteArray = Encoding.ASCII.GetBytes($"{muxTokenId}:{muxTokenSecret}");
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-        }
-
-        public async Task<MuxAssetDto> UploadVideoAsync()
-        {
-            var payload = new
+            Configuration muxConfig = new Configuration
             {
-                input = "https://storage.googleapis.com/muxdemofiles/mux-video-intro.mp4",
-                playback_policy = new[] { "public" }
+                Username = muxTokenId,
+                Password = muxTokenSecret
             };
 
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("https://api.mux.com/video/v1/assets", content);
-            response.EnsureSuccessStatusCode();
-
-            var responseBody = await response.Content.ReadAsStringAsync();
-            var parsed = JsonSerializer.Deserialize<MuxAssetResponse>(responseBody);
-
-            return parsed?.data ?? throw new Exception("MUX API nije vratio asset.");
+            _assetsApi = new AssetsApi(muxConfig);
         }
-    }
 
-    public class MuxAssetResponse
-    {
-        public required MuxAssetDto data { get; set; }
-    }
+        // 🔐 JWT generacija
+        public string GenerateToken(string userId, string email)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-    public class MuxAssetDto
-    {
-        public required string Id { get; set; }
-        public required object[] PlaybackIds { get; set; }
-        public required string Status { get; set; }
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, userId),
+                new Claim(JwtRegisteredClaimNames.Email, email),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: _jwtIssuer,
+                audience: _jwtAudience,
+                claims: claims,
+                expires: DateTime.UtcNow.AddMinutes(_jwtExpireMinutes),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+        // 📹 Upload videa na Mux
+        public async Task<Asset> UploadVideoAsync()
+        {
+            var upload = new CreateUploadRequest
+            {
+                NewAssetSettings = new CreateAssetRequest
+                {
+                    PlaybackPolicy = new System.Collections.Generic.List<string> { "public" }
+                }
+            };
+
+            var uploadResult = await _assetsApi.CreateUploadAsync(upload);
+
+            // Kreira Asset nakon što korisnik zapravo uploada video koristeći upload URL
+            return await _assetsApi.GetAssetAsync(uploadResult.Data.AssetId);
+        }
     }
 }
