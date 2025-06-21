@@ -1,5 +1,7 @@
+using backend.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 
 namespace backend.Controllers
 {
@@ -8,35 +10,48 @@ namespace backend.Controllers
     [Route("api/videos")]
     public class VideoController : ControllerBase
     {
+        private static readonly List<Video> videos = new();
+
         // POST api/videos
         [HttpPost]
         public IActionResult Upload([FromBody] VideoUploadRequest request)
         {
-            // TODO: Implement Mux upload
-            return Ok("Video uploaded (stub)");
+            var video = new Video
+            {
+                Id = Guid.NewGuid().ToString(),
+                Title = request.Title,
+                Description = request.Description,
+                PlaybackUrl = request.Url
+            };
+
+            videos.Add(video);
+            return Ok(video);
         }
 
         // GET api/videos
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult List()
         {
-            // TODO: Return video list
-            return Ok(new[] { "video1", "video2" });
+            return Ok(videos);
         }
 
         // POST api/videos/{id}/purchase
         [HttpPost("{id}/purchase")]
         public IActionResult Purchase(string id)
         {
-            // TODO: Implement Stripe session
-            return Ok($"Purchased video with ID: {id} (stub)");
+            var video = videos.Find(v => v.Id == id);
+            if (video == null)
+                return NotFound($"Video with ID {id} not found.");
+
+            return Ok($"Purchased video with ID: {id}");
         }
     }
 
-    // 👇 Dummy DTO - zamijeni sa stvarnim propertiima koje ti trebaju
     public class VideoUploadRequest
     {
         public required string Title { get; set; }
+        public string? Description { get; set; }
         public required string Url { get; set; }
     }
 }
