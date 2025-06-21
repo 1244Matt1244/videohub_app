@@ -1,7 +1,9 @@
 using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace backend.Controllers
 {
@@ -10,48 +12,51 @@ namespace backend.Controllers
     [Route("api/videos")]
     public class VideoController : ControllerBase
     {
-        private static readonly List<Video> videos = new();
+        private readonly MuxService _muxService;
+        private readonly VideoService _videoService;
 
-        // POST api/videos
-        [HttpPost]
-        public IActionResult Upload([FromBody] VideoUploadRequest request)
+        public VideoController(MuxService muxService, VideoService videoService)
         {
+            _muxService = muxService;
+            _videoService = videoService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Upload([FromBody] VideoUploadRequest request)
+        {
+            var muxAsset = await _muxService.UploadVideoByUrlAsync(request.Url); // Pretpostavimo da postoji metoda
             var video = new Video
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = muxAsset.Id,
                 Title = request.Title,
-                Description = request.Description,
-                PlaybackUrl = request.Url
+                PlaybackUrl = $"https://stream.mux.com/{muxAsset.PlaybackIds[0].Id}.m3u8",
+                Description = request.Description
             };
 
-            videos.Add(video);
+            await _videoService.SaveVideoAsync(video);
+
             return Ok(video);
         }
 
-        // GET api/videos
         [HttpGet]
-        [AllowAnonymous]
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
+            var videos = await _videoService.GetAllVideosAsync();
             return Ok(videos);
         }
 
-        // POST api/videos/{id}/purchase
         [HttpPost("{id}/purchase")]
-        public IActionResult Purchase(string id)
+        public async Task<IActionResult> Purchase(string id)
         {
-            var video = videos.Find(v => v.Id == id);
-            if (video == null)
-                return NotFound($"Video with ID {id} not found.");
-
-            return Ok($"Purchased video with ID: {id}");
+            // Simulacija kupnje ili poziv StripeService
+            return Ok($"Kupnja videa ID: {id} (stub)");
         }
     }
 
     public class VideoUploadRequest
     {
         public required string Title { get; set; }
-        public string? Description { get; set; }
         public required string Url { get; set; }
+        public string? Description { get; set; }
     }
 }
