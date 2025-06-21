@@ -1,3 +1,5 @@
+#nullable enable
+
 namespace backend.Models
 {
     public class Video
