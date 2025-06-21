@@ -23,6 +23,9 @@ if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) ||
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<VideoService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<StripeService>();
+builder.Services.AddHttpClient<MuxService>();
 
 // Swagger dokumentacija
 builder.Services.AddSwaggerGen(options =>
@@ -33,7 +36,6 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1"
     });
 
-    // JWT u Swagger sučelju
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -84,11 +86,6 @@ builder.Services.AddAuthentication(options =>
 // Autorizacija
 builder.Services.AddAuthorization();
 
-// Custom servisi
-builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<StripeService>();
-builder.Services.AddHttpClient<MuxService>();
-
 // Build aplikacije
 var app = builder.Build();
 
@@ -99,7 +96,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection(); // Automatski redirect s HTTP na HTTPS (ako koristiš https profil)
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
