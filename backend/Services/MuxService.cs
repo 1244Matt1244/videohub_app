@@ -1,45 +1,42 @@
-using Microsoft.Extensions.Configuration;
-using Mux.Video;
-using Mux.Video.Api;
-using Mux.Video.Models;
 using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace backend.Services
+namespace VideoHubApp.Services
 {
     public class MuxService
     {
-        private readonly AssetsApi _assetsApi;
+        private readonly HttpClient _httpClient;
 
-        public MuxService(IConfiguration config)
+        public MuxService(HttpClient httpClient)
         {
-            var muxTokenId = config["Mux:TokenId"];
-            var muxTokenSecret = config["Mux:TokenSecret"];
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri("https://api.mux.com/");
 
-            if (string.IsNullOrEmpty(muxTokenId) || string.IsNullOrEmpty(muxTokenSecret))
-                throw new ArgumentException("Mux API keys are missing");
+            var muxTokenId = Environment.GetEnvironmentVariable("MUX_TOKEN_ID") ?? "YOUR_MUX_TOKEN_ID";
+            var muxSecret = Environment.GetEnvironmentVariable("MUX_SECRET") ?? "YOUR_MUX_SECRET";
 
-            Configuration muxConfig = new Configuration
-            {
-                Username = muxTokenId,
-                Password = muxTokenSecret
-            };
-
-            _assetsApi = new AssetsApi(muxConfig);
+            var byteArray = Encoding.ASCII.GetBytes($"{muxTokenId}:{muxSecret}");
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
         }
 
-        public async Task<Asset> UploadVideoAsync()
+        public async Task<string> CreateAssetAsync(string playbackId)
         {
-            var upload = new CreateUploadRequest
+            var payload = new
             {
-                NewAssetSettings = new CreateAssetRequest
-                {
-                    PlaybackPolicy = new System.Collections.Generic.List<string> { "public" }
-                }
+                input = new[] { $"https://stream.mux.com/{playbackId}.m3u8" },
+                playback_policy = new[] { "public" }
             };
 
-            var uploadResult = await _assetsApi.CreateUploadAsync(upload);
-            return await _assetsApi.GetAssetAsync(uploadResult.Data.AssetId);
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("video/v1/assets", content);
+
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }
