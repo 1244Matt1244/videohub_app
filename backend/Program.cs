@@ -22,6 +22,7 @@ if (string.IsNullOrWhiteSpace(jwtKey) || string.IsNullOrWhiteSpace(jwtIssuer) ||
 // Registracija servisa
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddScoped<VideoService>();
 
 // Swagger dokumentacija
 builder.Services.AddSwaggerGen(options =>
