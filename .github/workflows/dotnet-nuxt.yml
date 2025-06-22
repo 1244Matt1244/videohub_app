@@ -1,4 +1,4 @@
-name: .NET CI
+name: VideoHub CI
 
 on:
   push:
@@ -7,31 +7,61 @@ on:
     branches: [main]
 
 jobs:
-  build-test:
+  build-backend:
+    name: 🔧 Build & Test .NET Backend
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup .NET 9 SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore dependencies
+      - name: Restore backend dependencies
         run: dotnet restore ./backend/VideoApp/VideoApp.csproj
 
       - name: Build backend
         run: dotnet build ./backend/VideoApp/VideoApp.csproj --configuration Release --no-restore
 
-      - name: Test backend
+      - name: Run backend tests
         run: dotnet test ./backend/VideoApp.Tests/VideoApp.Tests.csproj --no-build --configuration Release
 
       - name: Publish backend
-        run: dotnet publish ./backend/VideoApp/VideoApp.csproj --configuration Release --output ./publish
+        run: dotnet publish ./backend/VideoApp/VideoApp.csproj --configuration Release --output ./backend-publish
 
-      - name: Upload publish folder
+      - name: Upload backend artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: videoapp-backend-publish
-          path: ./publish
+          name: backend-publish
+          path: ./backend-publish
+
+  build-frontend:
+    name: 🧪 Lint & Build Nuxt Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm install
+
+      - name: Lint frontend (optional)
+        run: |
+          cd frontend
+          npm run lint || echo "Lint warnings"
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
