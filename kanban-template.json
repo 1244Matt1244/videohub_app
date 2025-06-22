@@ -1,10 +1,134 @@
-
 {
   "name": "VideoHub Kanban",
   "columns": [
-    { "name": "Backlog" },
-    { "name": "In Progress" },
-    { "name": "Review" },
-    { "name": "Done" }
+    {
+      "name": "Backlog",
+      "issues": [
+        {
+          "title": "Dodavanje klasične autentikacije + JWT (backend)",
+          "priority": "High",
+          "owner": "Matej",
+          "checklist": [
+            "Kreirati login endpoint",
+            "Konfigurirati JWT validaciju",
+            "Implementirati autorizacijski middleware",
+            "Testirati autentikaciju"
+          ]
+        },
+        {
+          "title": "Google OAuth integracija",
+          "priority": "Medium",
+          "owner": "Matej",
+          "checklist": [
+            "Registrirati app u Google Console",
+            "Implementirati OAuth flow u backendu",
+            "Povezati s korisničkim računima",
+            "Testirati prijavu putem Google-a"
+          ]
+        },
+        {
+          "title": "Postavljanje baze i Dapper ORM (.NET)",
+          "priority": "High",
+          "owner": "Matej",
+          "checklist": [
+            "Kreirati SQL bazu podataka",
+            "Konfigurirati Dapper ORM",
+            "Implementirati osnovne CRUD operacije",
+            "Testirati konekciju i upite"
+          ]
+        },
+        {
+          "title": "Implementacija CQRS arhitekture",
+          "priority": "Medium",
+          "owner": "Matej",
+          "checklist": [
+            "Definirati Query i Command modele",
+            "Implementirati Command Handlere",
+            "Implementirati Query Handlere",
+            "Osigurati event sourcing (opcionalno)"
+          ]
+        },
+        {
+          "title": "Integracija MUX servisa (upload, stream)",
+          "priority": "High",
+          "owner": "Matej",
+          "checklist": [
+            "Registrirati MUX račun",
+            "Implementirati upload video datoteka",
+            "Implementirati video streaming",
+            "Testirati MUX funkcionalnosti"
+          ]
+        },
+        {
+          "title": "Stripe test plaćanje za premium videe",
+          "priority": "High",
+          "owner": "Matej",
+          "checklist": [
+            "Konfigurirati Stripe API ključeve",
+            "Implementirati payment intent backend",
+            "Implementirati frontend checkout",
+            "Testirati plaćanja"
+          ]
+        },
+        {
+          "title": "UI za dashboard s filtrima",
+          "priority": "Medium",
+          "owner": "Matej",
+          "checklist": [
+            "Kreirati dashboard komponentu",
+            "Implementirati filtere po kategorijama i statusu",
+            "Implementirati paginaciju",
+            "Testirati UI i UX"
+          ]
+        },
+        {
+          "title": "Dark mode toggle + korisničke postavke",
+          "priority": "Low",
+          "owner": "Matej",
+          "checklist": [
+            "Dodati toggle za dark/light mode",
+            "Spremiti postavke u local storage",
+            "Omogućiti sinkronizaciju s korisničkim računom"
+          ]
+        },
+        {
+          "title": "README + deploy + CI (opcionalno)",
+          "priority": "Low",
+          "owner": "Matej",
+          "checklist": [
+            "Napisati detaljni README",
+            "Postaviti deploy pipeline",
+            "Implementirati CI za build i testove"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "In Progress",
+      "issues": []
+    },
+    {
+      "name": "Review",
+      "issues": []
+    },
+    {
+      "name": "Blocked",
+      "issues": []
+    },
+    {
+      "name": "Done",
+      "issues": [
+        {
+          "title": "Postavljanje Nuxt 3 + Tailwind",
+          "priority": "Low",
+          "owner": "Matej",
+          "checklist": [
+            "Instalirati Nuxt 3",
+            "Konfigurirati Tailwind CSS",
+            "Postaviti osnovnu strukturu projekta"
+          ]
+        }
+      ]
+    }
   ]
 }

@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .premium-badge {
+    @apply bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold;
+  }
+}

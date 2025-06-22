@@ -1,33 +1,72 @@
-version: '3.8'
 services:
-  db:
+  sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: videohub-sql-server
     environment:
-      ACCEPT_EULA: "Y"
       SA_PASSWORD: "${SA_PASSWORD}"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"
     ports:
       - "1433:1433"
     volumes:
-      - sql_data:/var/opt/mssql
+      - sql-data:/var/opt/mssql
+    networks:
+      - videohub-network
+    restart: unless-stopped
 
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      args:
+        NUGET_USERNAME: ${NUGET_USERNAME}
+        NUGET_PASSWORD: ${NUGET_PASSWORD}
+    container_name: videohub-backend
     ports:
       - "5000:80"
-    environment:
-      - ConnectionStrings__Default=Server=${DB_SERVER};Database=${DB_NAME};User Id=${DB_USER};Password=${DB_PASSWORD};
-      - Mux__TokenId=${MUX_TOKEN_ID}
-      - Mux__TokenSecret=${MUX_TOKEN_SECRET}
-      - Stripe__SecretKey=${STRIPE_SECRET_KEY}
     depends_on:
-      - db
+      - sql-server
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sql-server;Database=VideoHub;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Jwt__Key: "${JWT_KEY}"
+      Jwt__Issuer: "http://backend:80"
+      Jwt__Audience: "http://frontend:3000"
+      Mux__TokenId: "${MUX_TOKEN_ID}"
+      Mux__TokenSecret: "${MUX_TOKEN_SECRET}"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
+      Stripe__WebhookSecret: "${STRIPE_WEBHOOK_SECRET}"
+      Google__ClientId: "${GOOGLE_CLIENT_ID}"
+      Google__ClientSecret: "${GOOGLE_CLIENT_SECRET}"
+    secrets:
+      - nuget_username
+      - nuget_token
+    networks:
+      - videohub-network
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    container_name: videohub-frontend
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
     environment:
-      - NUXT_PUBLIC_API_BASE=http://localhost:5000
+      NUXT_PUBLIC_API_BASE_URL: "http://backend:80"
+      NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
+    networks:
+      - videohub-network
+    restart: unless-stopped
+
+secrets:
+  nuget_username:
+    external: true
+  nuget_token:
+    external: true
+
+networks:
+  videohub-network:
+    driver: overlay
 
 volumes:
-  sql_data:
+  sql-data:
