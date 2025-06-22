@@ -1,4 +1,4 @@
-name: VideoHub CI
+name: VideoHub CI/CD
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
       - name: Build backend
         run: dotnet build ./backend/VideoApp/VideoApp.csproj --configuration Release --no-restore
 
-      - name: Run backend tests
+      - name: Test backend
         run: dotnet test ./backend/VideoApp.Tests/VideoApp.Tests.csproj --no-build --configuration Release
 
       - name: Publish backend
@@ -39,7 +39,7 @@ jobs:
           path: ./backend-publish
 
   build-frontend:
-    name: 🧪 Lint & Build Nuxt Frontend
+    name: 🧪 Build Nuxt Frontend
     runs-on: ubuntu-latest
 
     steps:
@@ -56,12 +56,44 @@ jobs:
           cd frontend
           npm install
 
-      - name: Lint frontend (optional)
-        run: |
-          cd frontend
-          npm run lint || echo "Lint warnings"
-
       - name: Build frontend
         run: |
           cd frontend
           npm run build
+
+  deploy-backend:
+    name: 🚀 Deploy to Azure App Service
+    needs: build-backend
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 9 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-publish
+          path: ./backend-publish
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      - name: Deploy to Azure Web App
+        id: deploy
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: videohub-app
+          slot-name: production
+          package: ./backend-publish
