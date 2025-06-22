@@ -1,134 +1,97 @@
-{
-  "name": "VideoHub Kanban",
-  "columns": [
-    {
-      "name": "Backlog",
-      "issues": [
-        {
-          "title": "Dodavanje klasične autentikacije + JWT (backend)",
-          "priority": "High",
-          "owner": "Matej",
-          "checklist": [
-            "Kreirati login endpoint",
-            "Konfigurirati JWT validaciju",
-            "Implementirati autorizacijski middleware",
-            "Testirati autentikaciju"
-          ]
-        },
-        {
-          "title": "Google OAuth integracija",
-          "priority": "Medium",
-          "owner": "Matej",
-          "checklist": [
-            "Registrirati app u Google Console",
-            "Implementirati OAuth flow u backendu",
-            "Povezati s korisničkim računima",
-            "Testirati prijavu putem Google-a"
-          ]
-        },
-        {
-          "title": "Postavljanje baze i Dapper ORM (.NET)",
-          "priority": "High",
-          "owner": "Matej",
-          "checklist": [
-            "Kreirati SQL bazu podataka",
-            "Konfigurirati Dapper ORM",
-            "Implementirati osnovne CRUD operacije",
-            "Testirati konekciju i upite"
-          ]
-        },
-        {
-          "title": "Implementacija CQRS arhitekture",
-          "priority": "Medium",
-          "owner": "Matej",
-          "checklist": [
-            "Definirati Query i Command modele",
-            "Implementirati Command Handlere",
-            "Implementirati Query Handlere",
-            "Osigurati event sourcing (opcionalno)"
-          ]
-        },
-        {
-          "title": "Integracija MUX servisa (upload, stream)",
-          "priority": "High",
-          "owner": "Matej",
-          "checklist": [
-            "Registrirati MUX račun",
-            "Implementirati upload video datoteka",
-            "Implementirati video streaming",
-            "Testirati MUX funkcionalnosti"
-          ]
-        },
-        {
-          "title": "Stripe test plaćanje za premium videe",
-          "priority": "High",
-          "owner": "Matej",
-          "checklist": [
-            "Konfigurirati Stripe API ključeve",
-            "Implementirati payment intent backend",
-            "Implementirati frontend checkout",
-            "Testirati plaćanja"
-          ]
-        },
-        {
-          "title": "UI za dashboard s filtrima",
-          "priority": "Medium",
-          "owner": "Matej",
-          "checklist": [
-            "Kreirati dashboard komponentu",
-            "Implementirati filtere po kategorijama i statusu",
-            "Implementirati paginaciju",
-            "Testirati UI i UX"
-          ]
-        },
-        {
-          "title": "Dark mode toggle + korisničke postavke",
-          "priority": "Low",
-          "owner": "Matej",
-          "checklist": [
-            "Dodati toggle za dark/light mode",
-            "Spremiti postavke u local storage",
-            "Omogućiti sinkronizaciju s korisničkim računom"
-          ]
-        },
-        {
-          "title": "README + deploy + CI (opcionalno)",
-          "priority": "Low",
-          "owner": "Matej",
-          "checklist": [
-            "Napisati detaljni README",
-            "Postaviti deploy pipeline",
-            "Implementirati CI za build i testove"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "In Progress",
-      "issues": []
-    },
-    {
-      "name": "Review",
-      "issues": []
-    },
-    {
-      "name": "Blocked",
-      "issues": []
-    },
-    {
-      "name": "Done",
-      "issues": [
-        {
-          "title": "Postavljanje Nuxt 3 + Tailwind",
-          "priority": "Low",
-          "owner": "Matej",
-          "checklist": [
-            "Instalirati Nuxt 3",
-            "Konfigurirati Tailwind CSS",
-            "Postaviti osnovnu strukturu projekta"
-          ]
-        }
-      ]
-    }
-  ]
-}
+---
+
+### 🗂️ VideoHub Kanban
+
+#### 🧠 **Backlog**
+
+- **Dodavanje klasične autentikacije + JWT (backend)**  
+  _Osigurati registraciju, prijavu i validaciju korisničkog identiteta koristeći JWT._  
+  **Checklist**:
+  - Kreirati login i register endpoint
+  - Konfigurirati JWT validaciju i signing key
+  - Implementirati autentikacijski middleware
+  - Dodati testove za login/token
+
+- **Google OAuth integracija**  
+  _Omogućiti korisnicima prijavu putem Google računa._  
+  **Checklist**:
+  - Registracija aplikacije u Google Console
+  - Dohvat i spremanje Google korisnika
+  - Mapiranje Google računa na korisnički profil
+  - Testirati Google login
+
+- **Postavljanje baze i Dapper ORM (.NET)**  
+  _Konfigurirati SQL Server bazu te postaviti bazne modele i repozitorije._  
+  **Checklist**:
+  - Izraditi skriptu za inicijalnu bazu
+  - Konfigurirati Dapper sa connection stringom
+  - Implementirati osnovne CRUD metode (npr. VideoRepository)
+  - Testirati rad baze
+
+- **CQRS arhitektura (backend)**  
+  _Odvojiti read/write tokove putem command & query handlera._  
+  **Checklist**:
+  - Definirati BaseCommand i BaseQuery
+  - Napraviti ICommandHandler / IQueryHandler sučelja
+  - Refaktorizirati servise po CQRS načelu
+  - (Opcionalno) Pripremiti EventStore klasu
+
+- **Integracija Mux (video upload + stream)**  
+  _Povezivanje s Mux API-em za upravljanje videima._  
+  **Checklist**:
+  - Kreirati servis za Mux API pozive
+  - Implementirati upload i dohvat stream URL-a
+  - Spremanje video referenci u bazu
+  - Simulacija i testiranje u sandbox modu
+
+- **Stripe plaćanja za premium sadržaj**  
+  _Omogućiti zaključavanje premium sadržaja do uspješnog plaćanja._  
+  **Checklist**:
+  - Konfigurirati Stripe test API ključeve
+  - Stvoriti backend endpoint za Payment Intent
+  - Implementirati frontend checkout flow
+  - Označiti video kao “premium” i kontrolirati pristup
+
+- **Dashboard UI + filteri (frontend)**  
+  _Kreirati korisničko sučelje za pregled i filtriranje videa._  
+  **Checklist**:
+  - Prikazati popis svih videa korisnika
+  - Omogućiti sortiranje i filtriranje (npr. premium/free)
+  - Dodati paginaciju
+  - Testirati UI responsivnost
+
+- **Dark mode i korisničke postavke**  
+  _Dodati mogućnost promjene teme i uređivanja profila._  
+  **Checklist**:
+  - Dodati toggle za tamni/svijetli način
+  - Spremiti preferenciju u localStorage / korisnički profil
+  - Dodati edit profil komponentu (ime, email, slika)
+
+- **Dokumentacija i DevOps (opcionalno)**  
+  _Osigurati bolji onboarding i održavanje._  
+  **Checklist**:
+  - Napisati bogat `README.md` s uputama i popisom API-jeva
+  - Postaviti `Dockerfile` i `docker-compose`
+  - Konfigurirati GitHub Actions za build + test
+
+---
+
+#### 🛠️ In Progress  
+_(prazno – spremno za prvi zadatak!)_
+
+#### 🧪 Review  
+_(pripremi za QA ili code review)_
+
+#### 🧊 Blocked  
+_(npr. čekanje na Google OAuth potvrdu)_
+
+#### ✅ Done
+
+- **Postavljanje Nuxt 3 + TailwindCSS**
+  _Frontend je pripremljen za razvoj dashboarda i korisničkih sučelja._  
+  **Checklist**:
+  - Instaliran Nuxt 3
+  - Tailwind konfiguriran
+  - Napravljena početna struktura i rute
+
+---
