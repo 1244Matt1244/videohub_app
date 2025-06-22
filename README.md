@@ -1,6 +1,5 @@
 ---
 
-```md
 # 🎬 VideoHub API
 
 ## 📘 Opis projekta
