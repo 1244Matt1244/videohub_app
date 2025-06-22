@@ -19,16 +19,19 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore dependencies
-        run: dotnet restore ./backend/VideoApp.csproj
+        run: dotnet restore ./backend/VideoApp/VideoApp.csproj
 
-      - name: Build
-        run: dotnet build ./backend/VideoApp.csproj --configuration Release --no-restore
+      - name: Build backend
+        run: dotnet build ./backend/VideoApp/VideoApp.csproj --configuration Release --no-restore
 
-      - name: Run tests
-        run: dotnet test ./VideoApp.Tests/VideoApp.Tests.csproj --no-build --configuration Release
+      - name: Test backend
+        run: dotnet test ./backend/VideoApp.Tests/VideoApp.Tests.csproj --no-build --configuration Release
 
-      - name: Publish artifacts
+      - name: Publish backend
+        run: dotnet publish ./backend/VideoApp/VideoApp.csproj --configuration Release --output ./publish
+
+      - name: Upload publish folder
         uses: actions/upload-artifact@v4
         with:
-          name: backend-publish
-          path: ./backend/bin/Release/net9.0/publish/
+          name: videoapp-backend-publish
+          path: ./publish
