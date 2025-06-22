@@ -1,92 +1,146 @@
 ---
 
-# VideoHub API
+```md
+# 🎬 VideoHub API
 
-## Opis projekta
+## 📘 Opis projekta
 
-VideoHub API je backend aplikacija razvijena u .NET 9, koja omogućava upravljanje video sadržajem uz integriranu autentifikaciju, naplatu putem Stripe-a, upload videa putem Mux platforme i pregled video sadržaja. API je dokumentiran koristeći OpenAPI 3.0 (Swagger) te podržava JWT autentifikaciju za sigurnu komunikaciju.
+VideoHub API je moderni backend sustav izrađen u .NET 9 (.NET 9 Preview), osmišljen za upravljanje video sadržajem putem integracije sa Mux-om, autentifikaciju korisnika (klasičnu i Google OAuth), naplatu putem Stripea i kontrolu pristupa premium sadržaju. Namijenjen je kao temelj za videoplatformu s premium modelom pristupa.
 
----
-
-## Tehnologije
-
-* .NET 9
-* ASP.NET Core Web API
-* JWT autentifikacija
-* Swagger (OpenAPI 3.0)
-* Stripe za naplatu
-* Mux za video upload i streaming
-* C# 10
-* Dependency Injection
+Projekt koristi JWT autentifikaciju, dokumentiran je putem Swagger UI (OpenAPI 3.0), a backend je organiziran po CQRS obrascu s Dapper ORM-om.
 
 ---
 
-## Funkcionalnosti
+## 🚧 Arhitektura
 
-* **Autentifikacija**:
+Aplikacija koristi **CQRS** (Command Query Responsibility Segregation) uz **Dapper ORM**, odvajajući upite (queryje) od operacija koje mijenjaju stanje (commandi). Autentifikacija je temeljena na **JWT tokenima** i konfigurirana kroz ASP.NET middleware. Integracija sa **Mux** omogućuje streaming i hosting videa, dok se naplata premium sadržaja obavlja putem **Stripe Payment Intents** API-ja.
 
-  * Klasična prijava (`POST /api/auth/login`)
-  * Google OAuth prijava (`POST /api/auth/google`)
-* **Video management**:
+Slojevi aplikacije uključuju:
 
-  * Upload videa (`POST /api/videos`)
-  * Dohvat svih videa (`GET /api/videos`)
-  * Kupnja videa (`POST /api/videos/{id}/purchase`)
-* **Naplatni sustav**:
-
-  * Stripe Payment Intents (`POST /api/stripe/create-payment-intent`)
-* **Mux integracija**:
-
-  * Upload videa na Mux (`POST /api/mux/upload`)
-* **Swagger UI** s podrškom za autorizaciju JWT tokenom
-* Root endpoint (`GET /`) preusmjerava na Swagger UI
+- `Controllers` – REST endpointi
+- `Services` – logika poslovnih pravila
+- `Interfaces` – apstrakcija servisa
+- `Dto` i `Models` – prijenosni i bazni objekti
+- `VideoApp.Tests` – osnovna testna pokrivenost (.NET xUnit)
 
 ---
 
-## Pokretanje
+## 🧰 Korištene tehnologije
 
-1. Postavi JWT konfiguraciju u `appsettings.json`:
+- **.NET 9 (ASP.NET Core Web API)**
+- **C# 10**
+- **JWT** autentifikacija + ASP.NET Identity Middleware
+- **Swagger / OpenAPI 3.0**
+- **Stripe** (test okruženje)
+- **Mux** za video upload i stream
+- **Google OAuth** autentifikacija
+- **Dapper ORM**
+- **SQL Server** (lokalno / Docker)
+- **Docker + Docker Compose**
+- **xUnit** (testiranje)
+- **GitHub Actions** (CI/CD)
 
-```json
-"Jwt": {
-  "Key": "tvoja-tajna-key",
-  "Issuer": "tvoj-api",
-  "Audience": "tvoj-api-korisnik"
-}
+---
+
+## ✅ Funkcionalnosti
+
+- 🔐 **Autentifikacija korisnika**: klasična (email + lozinka) + Google OAuth
+- 🎞️ **Upload i prikaz videa**: pohrana preko Mux, pregled putem stream linka
+- 💳 **Premium videi**: zaključani dok korisnik ne obavi Stripe testnu transakciju
+- 🧾 **RESTful API**: pristup putem JWT tokena
+- 📜 **Swagger dokumentacija**: `/swagger` endpoint
+- 🧪 **Unit testovi**: pokrivenost testovima za ključne servise
+
+---
+
+## 🚀 Pokretanje projekta
+
+### 🔑 Preduvjeti
+
+- .NET 9 SDK
+- Node.js (za frontend)
+- Docker (za lokalnu SQL bazu)
+- Stripe, Mux i Google API ključevi (testni mod)
+- (Opcionalno) Vercel ili Azure račun za deploy
+
+### ⚙️ Konfiguracija
+
+1. Kopiraj `.env.example` u `.env` i postavi varijable:
+
+```env
+SA_PASSWORD=YourStrong@Passw0rd
+JWT_KEY=secure_32+_char_key
+MUX_TOKEN_ID=your_mux_token_id
+MUX_TOKEN_SECRET=your_mux_token_secret
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+GOOGLE_CLIENT_ID=google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=google-client-secret
 ```
 
-2. Pokreni aplikaciju:
+2. Pokreni SQL Server i backend putem Docker Compose:
 
 ```bash
-dotnet run --launch-profile backend
+docker-compose up -d
 ```
 
-3. Otvori Swagger UI na adresi:
+3. Otvori Swagger UI:
 
 ```
-https://localhost:7290/swagger
+http://localhost:5000/swagger
 ```
 
 ---
 
-## Daljnji razvoj i mogućnosti
+## 📦 Pokretanje frontend-a (Nuxt 3)
 
-### ➕ Dodaci koje možeš implementirati
+1. Instaliraj ovisnosti:
 
-* **Rate Limiting**
-  Ograniči broj zahtjeva korisnika u određenom vremenskom periodu za bolju zaštitu i stabilnost API-ja.
+```bash
+cd frontend
+npm install
+```
 
-* **Logging**
-  Implementiraj detaljno logiranje zahtjeva, grešaka i događaja radi lakšeg praćenja rada aplikacije.
+2. Pokreni lokalni dev server:
 
-* **Testovi (Unit / Integration)**
-  Generiraj testove za ključne dijelove sustava kao što su:
-
-  * Autentifikacija (Auth)
-  * Stripe integracija
-  * Mux upload
-
-* **Docker**
-  Pripremi Dockerfile za jednostavan deployment i skalabilnost.
+```bash
+npm run dev
+```
 
 ---
+
+## 🌍 Deploy (CI/CD)
+
+Projekt koristi GitHub Actions za:
+
+- Build i test .NET backend-a
+- Build Nuxt frontend-a
+- Deploy backend-a na **Azure App Service** (`videohub-app`)
+- (Opcionalno) frontend deploy na Vercel
+
+CI workflow nalazi se u: `.github/workflows/dotnet-nuxt.yml`
+
+---
+
+## 📈 Daljnji razvoj (roadmap)
+
+- [ ] 💡 Rate Limiting i Anti-Spam mjere
+- [ ] 💬 Video komentari i lajkovi
+- [ ] 📊 Statistika gledanosti po korisniku
+- [ ] 🧩 Admin dashboard
+- [ ] 📽️ Video konverzija / thumbnails
+
+---
+
+## 🎯 Kanban board
+
+Organizirani backlog nalazi se ovdje:  
+🔗 https://github.com/users/1244Matt1244/projects/1
+
+---
+
+## 📝 Licenca
+
+MIT License © [Matej](https://github.com/1244Matt1244)
+
+```
