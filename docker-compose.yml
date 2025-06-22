@@ -1,7 +1,10 @@
+version: '3.9'
+
 services:
   sql-server:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: videohub-sql-server
+    platform: linux/amd64
     environment:
       SA_PASSWORD: "${SA_PASSWORD}"
       ACCEPT_EULA: "Y"
@@ -12,11 +15,17 @@ services:
       - sql-data:/var/opt/mssql
     networks:
       - videohub-network
-    restart: unless-stopped
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "${SA_PASSWORD}", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
       args:
         NUGET_USERNAME: ${NUGET_USERNAME}
         NUGET_PASSWORD: ${NUGET_PASSWORD}
@@ -24,7 +33,8 @@ services:
     ports:
       - "5000:80"
     depends_on:
-      - sql-server
+      sql-server:
+        condition: service_healthy
     environment:
       ConnectionStrings__DefaultConnection: "Server=sql-server;Database=VideoHub;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
       ASPNETCORE_ENVIRONMENT: "Development"
@@ -42,10 +52,19 @@ services:
       - nuget_token
     networks:
       - videohub-network
-    restart: unless-stopped
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NUXT_PUBLIC_API_BASE_URL: "http://backend:80"
+        NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
     container_name: videohub-frontend
     ports:
       - "3000:3000"
@@ -56,7 +75,7 @@ services:
       NUXT_PUBLIC_STRIPE_PUBLIC_KEY: "${STRIPE_PUBLIC_KEY}"
     networks:
       - videohub-network
-    restart: unless-stopped
+    restart: on-failure
 
 secrets:
   nuget_username:
@@ -66,7 +85,7 @@ secrets:
 
 networks:
   videohub-network:
-    driver: overlay
+    driver: bridge
 
 volumes:
   sql-data:
