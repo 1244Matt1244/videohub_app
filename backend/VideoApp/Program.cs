@@ -22,9 +22,12 @@ builder.Services.AddAuthentication(o =>
 })
 .AddJwtBearer(o =>
 {
+    o.MapInboundClaims = false;   // ← KLJUČNO: čuva "sub" claim kakav jest
     o.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true, ValidateAudience = true, ValidateLifetime = true,
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSection["Issuer"],
         ValidAudience = jwtSection["Audience"],
