@@ -1,8 +1,10 @@
 using System.Text;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using VideoApp.Commands.Auth;
+using VideoApp.Common;
 using VideoApp.Interfaces;
 using VideoApp.Middleware;
 using VideoApp.Repositories;
@@ -11,7 +13,14 @@ using VideoApp.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly));
+
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(RegisterCommand).Assembly);
+    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+});
+
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterCommandValidator>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 
@@ -22,7 +31,7 @@ builder.Services.AddAuthentication(o =>
 })
 .AddJwtBearer(o =>
 {
-    o.MapInboundClaims = false;   // ← KLJUČNO: čuva "sub" claim kakav jest
+    o.MapInboundClaims = false;
     o.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -67,3 +76,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
+
+public partial class Program { }
